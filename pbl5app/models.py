@@ -61,4 +61,16 @@ class Attendance(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
 
+
+class AttendanceImage(models.Model):
+    id = models.AutoField(primary_key=True)
+    id_user =  models.IntegerField(null=True, blank=True)
+    image = models.ImageField(upload_to='static/images/', null=True)
+    checkin_time = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.id)
+    
+    

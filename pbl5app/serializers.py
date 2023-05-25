@@ -1,4 +1,4 @@
-from .models import User, Encode, Attendance
+from .models import User, Encode, Attendance, AttendanceImage
 from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,4 +25,12 @@ class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
         fields = ('id', 'id_user', 'date')
+
+
+class AttendanceImageSerializer(serializers.ModelSerializer):
+    checkin = serializers.DateTimeField(source='checkin_time', format='%Y-%m-%d %H:%M')
+
+    class Meta:
+        model = AttendanceImage
+        fields = ('id', 'id_user', 'image', 'checkin')
 
