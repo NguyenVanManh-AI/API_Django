@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import User, Encode, Attendance
-from .serializers import UserSerializer, UserPasswordUpdateSerializer, EncodeSerializer
+from .models import User, Encode, Attendance, AttendanceImage
+from .serializers import UserSerializer, UserPasswordUpdateSerializer, EncodeSerializer, AttendanceImageSerializer
 # Create your views here.
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework import status
 # from django.contrib.auth import authenticate
 import face_recognition
+import datetime
 
 class LoginView(APIView):
     def post(self, request):
@@ -52,6 +53,14 @@ class UserList(generics.ListAPIView):
 class AdminList(generics.ListAPIView):
     queryset = User.objects.filter(role='admin').order_by('-id')
     serializer_class = UserSerializer
+
+class AttendanceImageViewSet(viewsets.ModelViewSet):
+    serializer_class = AttendanceImageSerializer
+
+    def get_queryset(self):
+        today = datetime.date.today()
+        return AttendanceImage.objects.filter(checkin_time__date=today).order_by('checkin_time')
+
 
 import os
 from django.conf import settings
@@ -273,7 +282,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 import numpy as np
-import datetime
+
 import re
 @csrf_exempt
 def receive_image(request):
@@ -298,6 +307,7 @@ def receive_image(request):
                 listEncodeRasp.append(list(val))
             
             encodes = Encode.objects.all()
+            listAttendanceImage = AttendanceImage.objects.all()
             list_userId = []
             list_userEncode = []
             for encode in encodes:
@@ -327,7 +337,13 @@ def receive_image(request):
                     if faceDis[matchIndex] < 15:
                         new_attendance = Attendance(id_user=list_userId[matchIndex],  date_time= datetime.datetime.now())
                         new_attendance.save()
-            
+
+                        exists = listAttendanceImage.filter(id_user=list_userId[matchIndex],  checkin_time__date=datetime.datetime.now().date().isoformat()).exists()
+                        if not exists:
+                            # AttendanceImage với id_user là 5 ko tồn tại trong listAttendanceImage
+                            newAttendanceImage = AttendanceImage(id_user=list_userId[matchIndex],  image= image_file, checkin_time= datetime.datetime.now())
+                            newAttendanceImage.save()
+
             return JsonResponse({'message': 'Success', 'len':str(len(list_encode))})
         else:
             return JsonResponse({'message': 'No image found in request'}, status=400)
