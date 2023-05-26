@@ -13,5 +13,5 @@ import datetime
 from datetime import date, time
 # print(datetime.datetime.now())
 today = date.today()
-start_time = datetime.datetime.combine(today, time(hour=23)) 
+start_time = datetime.datetime.now() 
 print(start_time)

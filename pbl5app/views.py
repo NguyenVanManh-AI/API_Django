@@ -59,7 +59,13 @@ class AttendanceImageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         today = datetime.date.today()
-        return AttendanceImage.objects.filter(checkin_time__date=today).order_by('checkin_time')
+        queryset = AttendanceImage.objects.filter(checkin_time__date=today).order_by('checkin_time')
+        
+        id_user = self.request.query_params.get('id_user', None)
+        if id_user is not None:
+            queryset = queryset.filter(id_user=id_user)
+        
+        return queryset
 
 
 import os
@@ -343,6 +349,14 @@ def receive_image(request):
                             # AttendanceImage với id_user là 5 ko tồn tại trong listAttendanceImage
                             newAttendanceImage = AttendanceImage(id_user=list_userId[matchIndex],  image= image_file, checkin_time= datetime.datetime.now())
                             newAttendanceImage.save()
+
+                            #Send mail
+                            subject = 'Successful attendance'
+                            message = 'This is a test email'
+                            from_email = 'laptrinhvienvuive.org.vn@gmail.com'
+                            recipient_list = ['congcuonghero@gmail.com']
+
+                            send_mail(subject, message, from_email, recipient_list)
 
             return JsonResponse({'message': 'Success', 'len':str(len(list_encode))})
         else:
