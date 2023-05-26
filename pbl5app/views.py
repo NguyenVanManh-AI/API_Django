@@ -312,6 +312,7 @@ def receive_image(request):
             for val in list_encode: 
                 listEncodeRasp.append(list(val))
             
+            users = User.objects.all()
             encodes = Encode.objects.all()
             listAttendanceImage = AttendanceImage.objects.all()
             list_userId = []
@@ -352,11 +353,19 @@ def receive_image(request):
 
                             #Send mail
                             subject = 'Successful attendance'
-                            message = 'This is a test email'
+                            message = 'Attendance today at '+datetime.datetime.now().ctime()
                             from_email = 'laptrinhvienvuive.org.vn@gmail.com'
-                            recipient_list = ['congcuonghero@gmail.com']
 
-                            send_mail(subject, message, from_email, recipient_list)
+                            try:
+                                user = User.objects.get(id=list_userId[matchIndex])
+                                email = user.email
+                                # Sử dụng biến 'email' cho mục đích mong muốn
+                                recipient_list = [email]
+                                send_mail(subject, message, from_email, recipient_list)
+                            except User.DoesNotExist:
+                                # Xử lý trường hợp không tìm thấy người dùng
+                                pass
+                           
 
             return JsonResponse({'message': 'Success', 'len':str(len(list_encode))})
         else:
