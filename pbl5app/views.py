@@ -355,13 +355,18 @@ def receive_image(request):
                     
                     matchIndex = np.argmin(faceDis)
                     if faceDis[matchIndex] < 15:
+                        found = True
                         try:
                             unconfirm = Unconfirm.objects.get(id_user=list_userId[matchIndex])
                             # Thực hiện các hành động với user tìm thấy
                         except Unconfirm.DoesNotExist:
                             # Xử lý trường hợp không tìm thấy user
-                            continue
+                            found = False
+                            pass
 
+                        if (found):
+                            continue
+                            
 
                         new_attendance = Attendance(id_user=list_userId[matchIndex],  date_time= datetime.datetime.now())
                         new_attendance.save()
