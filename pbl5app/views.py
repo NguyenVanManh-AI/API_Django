@@ -218,7 +218,7 @@ class UserPasswordUpdateAPIView(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         old_password = hash_password(request.data.get('old_password'))
-        new_password = hash_password(request.data.get('new_password'))
+        new_password = request.data.get('new_password')
         if old_password == instance.password:
             instance.password = new_password
             instance.save(update_fields=['password'])
