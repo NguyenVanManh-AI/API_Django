@@ -1,10 +1,15 @@
 from rest_framework import viewsets
-from .models import User, Encode, Attendance, AttendanceImage
-from .serializers import UserSerializer, UserPasswordUpdateSerializer, EncodeSerializer, AttendanceImageSerializer
+from django.core.mail import send_mail
+from .models import User, Encode, Attendance, AttendanceImage, Unconfirm
+from .serializers import UserSerializer, UserPasswordUpdateSerializer, EncodeSerializer, AttendanceImageSerializer, UnconfirmSerializer
 # Create your views here.
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+class UnconfirmViewSet(viewsets.ModelViewSet):
+    queryset = Unconfirm.objects.all()
+    serializer_class = UnconfirmSerializer
 
 import hashlib
 
@@ -162,6 +167,14 @@ class UserUpdateAPIView(generics.UpdateAPIView):
 
         update_encode= 0
         if 'url_video' in request.data:
+            try:
+                unconfirm = Unconfirm.objects.get(id_user=str(instance.id))
+                # Thực hiện các hành động với user tìm thấy
+            except Unconfirm.DoesNotExist:
+                # Xử lý trường hợp không tìm thấy user
+                unconfirm = Unconfirm(id_user=str(instance.id))
+                unconfirm.save()
+
             update_encode= 1
             if instance.url_video:
                 # Xoa encode cu
@@ -312,7 +325,7 @@ def receive_image(request):
             for val in list_encode: 
                 listEncodeRasp.append(list(val))
             
-            users = User.objects.all()
+            
             encodes = Encode.objects.all()
             listAttendanceImage = AttendanceImage.objects.all()
             list_userId = []
@@ -342,6 +355,14 @@ def receive_image(request):
                     
                     matchIndex = np.argmin(faceDis)
                     if faceDis[matchIndex] < 15:
+                        try:
+                            unconfirm = Unconfirm.objects.get(id_user=list_userId[matchIndex])
+                            # Thực hiện các hành động với user tìm thấy
+                        except Unconfirm.DoesNotExist:
+                            # Xử lý trường hợp không tìm thấy user
+                            continue
+
+
                         new_attendance = Attendance(id_user=list_userId[matchIndex],  date_time= datetime.datetime.now())
                         new_attendance.save()
 
@@ -575,16 +596,6 @@ def num_user(request):
     maxUser = User.objects.filter(role='user').count()
     return JsonResponse({'so_nhan_vien': str(maxUser)})
 
-# send mail 
-from django.core.mail import send_mail
-def pbl_send_mail(request):
-    subject = 'Hello'
-    message = 'This is a test email'
-    from_email = 'laptrinhvienvuive.org.vn@gmail.com'
-    recipient_list = ['nguyenvanmanh2001it1@gmail.com']
-
-    send_mail(subject, message, from_email, recipient_list)
-    return JsonResponse({'status':'true'})
     
 
     

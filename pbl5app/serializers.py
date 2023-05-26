@@ -34,3 +34,7 @@ class AttendanceImageSerializer(serializers.ModelSerializer):
         model = AttendanceImage
         fields = ('id', 'id_user', 'image', 'checkin')
 
+class UnconfirmSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Encode
+        fields = ['id', 'id_user']
